@@ -439,7 +439,7 @@ scene("game", () => {
 			Newgrounds.UnlockMedal(2);
 		}
 
-		if(timer.time.toFixed() < 100) {
+		if(timer.time < 100) {
 			Newgrounds.UnlockMedal(3);
 		};
 
