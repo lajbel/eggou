@@ -33,27 +33,30 @@ const k = kaboom({
 	global: true,
 	width: 680,
 	height: 500,
-	debug: false,
+	canvas: document.getElementById("game"),
+	debug: true,
+	fullscreen: false,
 	clearColor: [0, 0, 0, 1],
 });
 
 // Load sprites and audios ///////////////////
 
-loadSound("spooky_beat", "./assets/sounds/spooky_beat.ogg");
-loadSound("start", "./assets/sounds/start.wav");
-loadSound("shoot", "./assets/sounds/shoot.wav");
-loadSound("boom", "./assets/sounds/boom.wav");
-loadSprite("margin", "./assets/sprites/margin.png");
-loadSprite("loose", "./assets/sprites/loose.png");
-loadSprite("win", "./assets/sprites/win.png");
-loadSprite("target", "./assets/sprites/target.png");
-loadSprite("clock", "./assets/sprites/clock.png");
-loadSprite("evil", "./assets/sprites/evil.png");
-loadSprite("heart", "./assets/sprites/heart.png");
-loadSprite("background", "./assets/sprites/background.png");
-loadSprite("logo", "./assets/logo.png");
-loadSprite("jam_logo", "./assets/jam_logo.png")
-loadSprite("egg", "./assets/sprites/egg.png", {
+loadSound("spooky_beat", "./sounds/spooky_beat.ogg");
+loadSound("start", "./sounds/start.wav");
+loadSound("shoot", "./sounds/shoot.wav");
+loadSound("boom", "./sounds/boom.wav");
+loadSprite("margin", "./sprites/margin.png");
+loadSprite("loose", "./sprites/loose.png");
+loadSprite("win", "./sprites/win.png");
+loadSprite("target", "./sprites/target.png");
+loadSprite("clock", "./sprites/clock.png");
+loadSprite("evil", "./sprites/evil.png");
+loadSprite("heart", "./sprites/heart.png");
+loadSprite("background", "./sprites/background.png");
+loadSprite("logo", "./sprites/logo.png");
+loadSprite("jam_logo", "./sprites/jam_logo.png");
+loadSprite("newgrounds", "./sprites/newgrounds.png");
+loadSprite("egg", "./sprites/egg.png", {
 	sliceX: 8,
 	sliceY: 1,
 	anims: {
@@ -63,7 +66,7 @@ loadSprite("egg", "./assets/sprites/egg.png", {
 		}
 	}
 });
-loadSprite("roboegg", "./assets/sprites/roboegg.png", {
+loadSprite("roboegg", "./sprites/roboegg.png", {
 	sliceX: 10,
 	sliceY: 1,
 	anims: {
@@ -73,7 +76,7 @@ loadSprite("roboegg", "./assets/sprites/roboegg.png", {
 		}
 	}
 });
-loadSprite("chiken", "./assets/sprites/chiken.png", {
+loadSprite("chiken", "./sprites/chiken.png", {
 	animSpeed: 1,
 	sliceX: 5,
 	sliceY: 1,
@@ -84,7 +87,7 @@ loadSprite("chiken", "./assets/sprites/chiken.png", {
 		}
 	}
 });
-loadSprite("robochiken", "./assets/sprites/robo_chiken.png", {
+loadSprite("robochiken", "./sprites/robo_chiken.png", {
 	animSpeed: 1,
 	sliceX: 6,
 	sliceY: 1,
@@ -95,7 +98,7 @@ loadSprite("robochiken", "./assets/sprites/robo_chiken.png", {
 		}
 	}
 });
-loadSprite("chikenboom", "./assets/sprites/chikenboom.png", {
+loadSprite("chikenboom", "./sprites/chikenboom.png", {
 	animSpeed: 1.5,
 	sliceX: 5,
 	sliceY: 1,
@@ -106,7 +109,7 @@ loadSprite("chikenboom", "./assets/sprites/chikenboom.png", {
 		}
 	}
 });
-loadSprite("robodead", "./assets/sprites/robodead.png", {
+loadSprite("robodead", "./sprites/robodead.png", {
 	animSpeed: 2,
 	sliceX: 12,
 	sliceY: 1,
@@ -124,8 +127,47 @@ loadSprite("robodead", "./assets/sprites/robodead.png", {
 
 // Scenes ///////////////////
 
+scene("splash", () => {
+	var show = false; 
+
+	const ng = add([
+		sprite("newgrounds"),
+		origin("center"),
+		color(1, 1, 1, 0),
+		scale(0.3),
+		pos(width() / 2, height() / 2)
+	]);
+
+	loop(0.01, () => {
+		if(show) return;
+
+		if(ng.color.a >= 1) wait(1, () => show = true)
+		else ng.color.a += 0.01;
+	});
+
+	loop(0.01, () => {
+		if(!show) return;
+
+		ng.color.a -= 0.01;
+
+		if(ng.color.a <= 0) wait(0.1, () => go("start"));
+	});
+
+	action(() => {
+		if(ng.isClicked()) {
+			window.open("https://www.newgrounds.com/", "_blank");
+		};
+
+		if(ng.isHovered()) {
+			document.getElementById("game").style.cursor = "pointer";
+		} else {
+			document.getElementById("game").style.cursor = "default";
+		};
+	});
+});
+
 scene("start", () => {
-	var isStart = false;
+	let isStart = false;
 
 	// Gui of Start ////////////////
 
@@ -136,14 +178,14 @@ scene("start", () => {
 		scale(1.2)
 	]);
 
-	add([
+	const jamLogo = add([
 		sprite("jam_logo"),
 		scale(0.3),
 		pos(0, -30)
-	])
+	]);
 
 	const startText = add([
-		text("Space for start game", 15),
+		text("Space or enter for play", 15),
 		pos(width() / 2, height() - 60),
 		origin("center"),
 	]);
@@ -156,30 +198,40 @@ scene("start", () => {
 
 
 	action(() => {
-		if (keyIsPressed("space") && !isStart) {
+		if ((keyIsPressed("space") || keyIsPressed("enter")) && !isStart) {
 			isStart = true;
 			play("start");
 			
 			loop(0.1, () => startText.hidden = !startText.hidden);
 			wait(2, () => go("game"));
 		};
+
+		if(jamLogo.isClicked()) {
+			window.open("https://www.newgrounds.com/collection/julyjam2021", "_blank");
+		};
+
+		if(jamLogo.isHovered()) {
+			document.getElementById("game").style.cursor = "pointer";
+		} else {
+			document.getElementById("game").style.cursor = "default";
+		};
 	});
 });
 
 scene("game", () => {
-	var BOSS_HEALTH = 300;
-	var PLAYER_HEALTH = 100;
+	let BOSS_HEALTH = 300;
+	let PLAYER_HEALTH = 100;
 
-	var win = false;
-	var worldW = 500;
-	var backgroundSpeed = 100;
-	var lastShoot = 0;
-	var isPosted = false;
+	let win = false;
+	let worldW = 500;
+	let backgroundSpeed = 100;
+	let lastShoot = 0;
+	let isPosted = false;
+
+	let backgroundMusic = play("spooky_beat");
+	backgroundMusic.loop();
 
 	layers(["background", "game", "ui"]);
-
-	var backgroundMusic = play("spooky_beat");
-	backgroundMusic.loop();
 
 	/// Game UI 
 	
@@ -225,13 +277,13 @@ scene("game", () => {
 		pos(worldW + 180 / 2, evil.pos.y + 140)
 	]);
 
-	var playerLife = add([
+	const playerLife = add([
 		text(":" + PLAYER_HEALTH, 25),
 		pos(heart.pos.x + 40, heart.pos.y + 15),
 		layer("ui")
 	]);
 
-	var bossLife = add([
+	const bossLife = add([
 		text(":" + BOSS_HEALTH, 25),
 		pos(evil.pos.x + 40, evil.pos.y + 15),
 		layer("ui")
@@ -255,7 +307,7 @@ scene("game", () => {
 		};
 	});
 
-	var player = add([
+	const player = add([
 		sprite("chiken"),
 		layer("game"),
 		pos(worldW / 2, height() - 40),
@@ -284,9 +336,7 @@ scene("game", () => {
 		}
 	]);
 	
-	player.play("fly");
-
-	var boss = add([
+	const boss = add([
 		sprite("robochiken"),
 		layer("game"),
 		pos(worldW / 2, -40),
@@ -327,12 +377,13 @@ scene("game", () => {
 			},
 		}
 	]);
-	
+
+	player.play("fly");
 	boss.play("fly");
 	boss.flipY(-1);
 	boss.trigger("toMap")
 
-	var attacks = [-1, 0, 1, 2, 3];
+	var attacks = [3];
 	var attack = -1;
 	var attackTime = 0;
 
@@ -347,7 +398,7 @@ scene("game", () => {
 		removeItemFromArr(attacks, attack);
 
 		if(attacks.length == 0) {
-			attacks = [-1, 0, 1, 2, 3];
+			attacks = [3];
 		};
 
 		if(attack < 0) {
@@ -380,7 +431,7 @@ scene("game", () => {
 			player.move(0, -player.speed);
 		};
 
-		if(keyIsPressed("space") && time() > lastShoot + 0.2 && player.exists()) {
+		if((keyIsPressed("space") || keyIsPressed("enter")) && time() > lastShoot + 0.2 && player.exists()) {
 			player.shoot();
 			readd(player);
 			lastShoot = time();
@@ -556,7 +607,7 @@ scene("game", () => {
 		if(time() > attackTime + 8) {
 			boss.angle = 0;
 
-			if(boss.pos.y.toFixed() == 40) {
+			if(boss.pos.y.toFixed() <= 40) {
 					attack = -1;
 			}
 			else {
@@ -581,10 +632,10 @@ scene("game", () => {
 
 		else {
 			if(time() > attackTime + 4) {
-				if(boss.pos.y.toFixed() == 40) {
+				if(boss.pos.y <= 40) {
 					attack = -1;
 				}
-				else {
+				else if(boss.pos.y > 40) {
 					boss.move(0, -boss.speed)
 				};
 			};
@@ -592,33 +643,35 @@ scene("game", () => {
 	});
 
 	boss.on("attackFour", () => {
+		let angleInit = 0.523;
+
 		if(boss.pos.y <= height() / 2 && time() < attackTime + 5) {
 			boss.move(0, boss.speed);
 		}
 
 		if(time() > boss.lastShoot + 0.8 && time() < attackTime + 5) {
 			boss.shoot(null, 0, 1);
-			boss.shoot(null, 0.5, 1);
-			boss.shoot(null, 1, 1);
-			boss.shoot(null, 1.5, 1);
-			boss.shoot(null, 2, 1);
-			boss.shoot(null, 2.5, 1);
-			boss.shoot(null, 3, 1);
-			boss.shoot(null, 3.5, 1);
-			boss.shoot(null, 4, 1);
-			boss.shoot(null, 4.5, 1);
-			boss.shoot(null, 5, 1);
-			boss.shoot(null, 5.5, 1);
-			boss.shoot(null, 5.9, 1);
+			boss.shoot(null, angleInit, 1);
+			boss.shoot(null, angleInit * 2, 1);
+			boss.shoot(null, angleInit * 3, 1);
+			boss.shoot(null, angleInit * 4, 1);
+			boss.shoot(null, angleInit * 5, 1);
+			boss.shoot(null, angleInit * 6, 1);
+			boss.shoot(null, angleInit * 7, 1);
+			boss.shoot(null, angleInit * 8, 1);
+			boss.shoot(null, angleInit * 9, 1);
+			boss.shoot(null, angleInit * 10, 1);
+			boss.shoot(null, angleInit * 11, 1);
+			boss.shoot(null, angleInit * 12, 1);
 
 			play("shoot", {volume: 0.7});
 			boss.lastShoot = time();
 		};
 		
 		if(time() > attackTime + 5) {
-			if(boss.pos.y.toFixed() == 40) {
+			if(boss.pos.y.toFixed() <= 40) {
 					attack = -1;
-				}
+			}
 			else {
 				boss.move(0, -boss.speed);
 			};
@@ -748,4 +801,4 @@ scene("win", () => {
 	});
 });
 
-start("start");
+start("splash");
