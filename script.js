@@ -1,4 +1,4 @@
-Newgrounds.Init("sss", "sss");
+Newgrounds.Init("", "sss");
 
 function health(hp) {
 	return {
@@ -34,7 +34,7 @@ const k = kaboom({
 	width: 680,
 	height: 500,
 	canvas: document.getElementById("game"),
-	debug: true,
+	debug: false,
 	fullscreen: false,
 	clearColor: [0, 0, 0, 1],
 });
@@ -383,7 +383,7 @@ scene("game", () => {
 	boss.flipY(-1);
 	boss.trigger("toMap")
 
-	var attacks = [3];
+	var attacks = [0, 1, 2, 3];
 	var attack = -1;
 	var attackTime = 0;
 
@@ -398,7 +398,7 @@ scene("game", () => {
 		removeItemFromArr(attacks, attack);
 
 		if(attacks.length == 0) {
-			attacks = [3];
+			attacks = [0, 1, 2, 3];
 		};
 
 		if(attack < 0) {
