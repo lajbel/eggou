@@ -1,3 +1,5 @@
+
+
 Newgrounds.Init("", "sss");
 
 function health(hp) {
