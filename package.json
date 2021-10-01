@@ -1,0 +1,10 @@
+{
+    "name": "kaboom-explosion",
+    "version": "1.0.0",
+    "dependencies": {
+        "esbuild": "^0.12.19",
+        "express": "^4.17.1",
+        "kaboom": "^0.5.1",
+        "newgrounds-boom": "^1.0.0"
+    }
+}
