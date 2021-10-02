@@ -2718,7 +2718,7 @@ vec4 frag(vec3 pos, vec2 uv, vec4 color, sampler2D tex) {
     });
     player.on("death", () => {
       backgroundMusic.stop();
-      Newgrounds.UnlockMedal(0);
+      ngUnlockMedal(0);
       playerLife.text = ":0";
       const boom = add([
         sprite("chikenboom"),
@@ -2732,19 +2732,19 @@ vec4 frag(vec3 pos, vec2 uv, vec4 color, sampler2D tex) {
       wait(2, () => go("loose"));
     });
     boss.on("death", () => {
-      Newgrounds.UnlockMedal(1);
+      ngUnlockMedal(1);
       var newScore = Number(timer.time.toFixed(2).toString().replace(".", ""));
       bossLife.text = ":0";
       if (!isPosted) {
         isPosted = true;
-        Newgrounds.PostScore(0, newScore);
+        ngPostScore(0, newScore);
       }
       ;
       if (player.hp() == 100) {
-        Newgrounds.UnlockMedal(2);
+        ngUnlockMedal(2);
       }
       if (timer.time < 100) {
-        Newgrounds.UnlockMedal(3);
+        ngUnlockMedal(3);
       }
       ;
       attackTime = 0;
