@@ -1,3 +1,4 @@
 .upm/
 .config/
 node_modules/
+.env

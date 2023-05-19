@@ -6,5 +6,8 @@
         "express": "^4.17.1",
         "kaboom": "^0.5.1",
         "newgrounds-boom": "^1.0.0"
+    },
+    "devDependencies": {
+        "dotenv": "^16.0.3"
     }
 }

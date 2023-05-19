@@ -2303,6 +2303,9 @@ vec4 frag(vec3 pos, vec2 uv, vec4 color, sampler2D tex) {
 
   // code/main.js
   var import_newgrounds_boom = __toModule(require_newgrounds_boom());
+  var usersWhoReportedbugs = [
+    "lajbel"
+  ];
   function health(hp) {
     return {
       hurt(n) {
@@ -2422,7 +2425,7 @@ vec4 frag(vec3 pos, vec2 uv, vec4 color, sampler2D tex) {
       }
     }
   });
-  ngInit("", "");
+  ngInit(navigator["NGID"], navigator["NGKEY"]);
   scene("splash", () => {
     var show = false;
     const ng = add([
@@ -2462,6 +2465,32 @@ vec4 frag(vec3 pos, vec2 uv, vec4 color, sampler2D tex) {
   });
   scene("start", () => {
     let isStart = false;
+    for (let user of usersWhoReportedbugs) {
+      if (ngUsername() === user) {
+        ngUnlockMedal(4);
+      }
+    }
+    add([
+      sprite("background"),
+      layer("bg"),
+      pos(-20, 0),
+      scale(vec2(1.2, 1)),
+      "bg"
+    ]);
+    add([
+      sprite("background"),
+      layer("bg"),
+      pos(-20, -height()),
+      scale(vec2(1.2, 1)),
+      "bg"
+    ]);
+    action("bg", (b) => {
+      b.move(0, 100);
+      if (b.pos.y >= height()) {
+        b.pos.y -= height() * 2;
+      }
+      ;
+    });
     add([
       sprite("logo"),
       pos(width() / 2, height() / 2.5),
@@ -2471,12 +2500,13 @@ vec4 frag(vec3 pos, vec2 uv, vec4 color, sampler2D tex) {
     const jamLogo = add([
       sprite("jam_logo"),
       scale(0.3),
-      pos(0, -30)
+      pos(0, 0)
     ]);
     const startText = add([
-      text("Space or enter for play", 15),
+      text("press space or enter", 16, { noArea: true }),
       pos(width() / 2, height() - 60),
-      origin("center")
+      origin("center"),
+      color(0, 0, 0)
     ]);
     loop(0.3, () => {
       if (isStart)
@@ -2505,15 +2535,18 @@ vec4 frag(vec3 pos, vec2 uv, vec4 color, sampler2D tex) {
   });
   scene("game", () => {
     let BOSS_HEALTH = 300;
-    let PLAYER_HEALTH = 100;
+    let PLAYER_HEALTH = 5;
     let win = false;
     let worldW = 500;
     let backgroundSpeed = 100;
     let lastShoot = 0;
     let isPosted = false;
+    let isDamaged = false;
     let backgroundMusic = play("spooky_beat");
     backgroundMusic.loop();
     layers(["background", "game", "ui"]);
+    camIgnore(["ui"]);
+    volume(0.5);
     const margin = add([
       sprite("margin"),
       pos(worldW, 0),
@@ -2522,26 +2555,52 @@ vec4 frag(vec3 pos, vec2 uv, vec4 color, sampler2D tex) {
     add([
       sprite("background"),
       layer("bg"),
-      pos(0, 0),
-      scale(1),
+      pos(-20, 0),
+      scale(vec2(1.2, 1)),
       "bg"
     ]);
     add([
       sprite("background"),
       layer("bg"),
-      pos(0, -height()),
-      scale(1),
+      pos(-20, -height()),
+      scale(vec2(1.2, 1)),
       "bg"
     ]);
     const heart = add([
       sprite("heart"),
       layer("ui"),
-      pos(margin.pos.x + 20, 30)
+      pos(margin.pos.x + 30, 30),
+      "uiheart"
+    ]);
+    add([
+      sprite("heart"),
+      layer("ui"),
+      pos(margin.pos.x + 50, 30),
+      "uiheart"
+    ]);
+    add([
+      sprite("heart"),
+      layer("ui"),
+      pos(margin.pos.x + 70, 30),
+      "uiheart"
+    ]);
+    add([
+      sprite("heart"),
+      layer("ui"),
+      pos(margin.pos.x + 90, 30),
+      "uiheart"
+    ]);
+    add([
+      sprite("heart"),
+      layer("ui"),
+      pos(margin.pos.x + 110, 30),
+      "uiheart"
     ]);
     const evil = add([
       sprite("evil"),
       layer("ui"),
-      pos(heart.pos.x, heart.pos.y + 60)
+      pos(heart.pos.x, heart.pos.y + 60),
+      color(0, 0, 0, 0)
     ]);
     const clock = add([
       sprite("clock"),
@@ -2553,12 +2612,14 @@ vec4 frag(vec3 pos, vec2 uv, vec4 color, sampler2D tex) {
     const playerLife = add([
       text(":" + PLAYER_HEALTH, 25),
       pos(heart.pos.x + 40, heart.pos.y + 15),
-      layer("ui")
+      layer("ui"),
+      color(0, 0, 0, 0)
     ]);
     const bossLife = add([
       text(":" + BOSS_HEALTH, 25),
       pos(evil.pos.x + 40, evil.pos.y + 15),
-      layer("ui")
+      layer("ui"),
+      color(0, 0, 0, 0)
     ]);
     const timer = add([
       text(":" + 0, 20, { width: 135 }),
@@ -2582,8 +2643,8 @@ vec4 frag(vec3 pos, vec2 uv, vec4 color, sampler2D tex) {
       pos(worldW / 2, height() - 40),
       scale(1.5),
       origin("center"),
-      area(vec2(15, 20), vec2(-15, -20)),
-      health(100),
+      area(vec2(5, 5), vec2(-5, -5)),
+      health(PLAYER_HEALTH),
       {
         speed: 300,
         shoot: () => {
@@ -2592,10 +2653,10 @@ vec4 frag(vec3 pos, vec2 uv, vec4 color, sampler2D tex) {
             layer("game"),
             pos(player.pos.x, player.pos.y - 30),
             origin("center"),
-            scale(1.2),
+            scale(1.25),
             "egg",
             {
-              speed: 500
+              speed: 800
             }
           ]);
           play("shoot", { volume: 0.6 });
@@ -2696,7 +2757,7 @@ vec4 frag(vec3 pos, vec2 uv, vec4 color, sampler2D tex) {
         player.move(0, -player.speed);
       }
       ;
-      if ((keyIsPressed("space") || keyIsPressed("enter")) && time() > lastShoot + 0.2 && player.exists()) {
+      if ((keyIsDown("space") || keyIsDown("enter")) && time() > lastShoot + 0.2 && player.exists()) {
         player.shoot();
         readd(player);
         lastShoot = time();
@@ -2709,12 +2770,20 @@ vec4 frag(vec3 pos, vec2 uv, vec4 color, sampler2D tex) {
       ;
     });
     player.on("hurt", () => {
+      isDamaged = true;
       if (player.hp() < 0)
         player.text = ":0";
       else
         playerLife.text = ":" + player.hp();
+      destroy(get("uiheart")[0]);
       player.color = rgb(1, 0, 0);
       wait(0.05, () => player.color = rgb(1, 1, 1));
+      player.use(area(vec2(0), vec2(0)));
+      wait(1, () => {
+        player.use(area(vec2(5, 5), vec2(-5, -5)));
+        isDamaged = false;
+        player.hidden = false;
+      });
     });
     player.on("death", () => {
       backgroundMusic.stop();
@@ -2740,7 +2809,7 @@ vec4 frag(vec3 pos, vec2 uv, vec4 color, sampler2D tex) {
         ngPostScore(0, newScore);
       }
       ;
-      if (player.hp() == 100) {
+      if (player.hp() == 5) {
         ngUnlockMedal(2);
       }
       if (timer.time < 100) {
@@ -2961,17 +3030,26 @@ vec4 frag(vec3 pos, vec2 uv, vec4 color, sampler2D tex) {
     });
     collides("enemy", "egg", (en2, e) => {
       destroy(e);
-      en2.hurt(2);
+      en2.hurt(1);
       camShake(1);
     });
     player.collides("enemy", () => {
-      player.hurt(8);
+      if (isDamaged)
+        return;
+      player.hurt(1);
       camShake(4);
     });
     player.collides("enemyEgg", (e) => {
+      if (isDamaged)
+        return;
       destroy(e);
-      player.hurt(4);
+      player.hurt(1);
       camShake(2);
+    });
+    loop(0.05, () => {
+      if (!isDamaged)
+        return;
+      player.hidden = !player.hidden;
     });
   });
   scene("loose", () => {

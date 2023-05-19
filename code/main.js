@@ -3,6 +3,10 @@
 import kaboom from "kaboom";
 import { newgroundsPlugin } from "newgrounds-boom";
 
+let usersWhoReportedbugs = [
+	"lajbel",
+];
+
 function health(hp) {
 	return {
 		hurt(n) {
@@ -22,12 +26,12 @@ function health(hp) {
 	};
 }
 
-function removeItemFromArr ( arr, item ) {
-    var i = arr.indexOf( item );
- 
-    if ( i !== -1 ) {
-        arr.splice( i, 1 );
-    }
+function removeItemFromArr(arr, item) {
+	var i = arr.indexOf(item);
+
+	if (i !== -1) {
+		arr.splice(i, 1);
+	}
 };
 
 // Kaboom Context ///////////////////
@@ -39,7 +43,7 @@ const k = kaboom({
 	canvas: document.getElementById("game"),
 	debug: false,
 	fullscreen: false,
-    plugins: [ newgroundsPlugin ],
+	plugins: [newgroundsPlugin],
 	clearColor: [0, 0, 0, 1],
 });
 
@@ -130,12 +134,12 @@ loadSprite("robodead", "./sprites/robodead.png", {
 	}
 });
 
-ngInit("", "");
+ngInit(navigator["NGID"], navigator["NGKEY"]);
 
 // Scenes ///////////////////
 
 scene("splash", () => {
-	var show = false; 
+	var show = false;
 
 	const ng = add([
 		sprite("newgrounds"),
@@ -146,26 +150,26 @@ scene("splash", () => {
 	]);
 
 	loop(0.01, () => {
-		if(show) return;
+		if (show) return;
 
-		if(ng.color.a >= 1) wait(1, () => show = true)
+		if (ng.color.a >= 1) wait(1, () => show = true);
 		else ng.color.a += 0.01;
 	});
 
 	loop(0.01, () => {
-		if(!show) return;
+		if (!show) return;
 
 		ng.color.a -= 0.01;
 
-		if(ng.color.a <= 0) wait(0.1, () => go("start"));
+		if (ng.color.a <= 0) wait(0.1, () => go("start"));
 	});
 
 	action(() => {
-		if(ng.isClicked()) {
+		if (ng.isClicked()) {
 			window.open("https://www.newgrounds.com/", "_blank");
 		};
 
-		if(ng.isHovered()) {
+		if (ng.isHovered()) {
 			document.getElementById("game").style.cursor = "pointer";
 		} else {
 			document.getElementById("game").style.cursor = "default";
@@ -175,6 +179,36 @@ scene("splash", () => {
 
 scene("start", () => {
 	let isStart = false;
+
+	for (let user of usersWhoReportedbugs) {
+		if (ngUsername() === user) {
+			ngUnlockMedal(4);
+		}
+	}
+
+	add([
+		sprite("background"),
+		layer("bg"),
+		pos(-20, 0),
+		scale(vec2(1.2, 1)),
+		"bg"
+	]);
+
+	add([
+		sprite("background"),
+		layer("bg"),
+		pos(-20, -height()),
+		scale(vec2(1.2, 1)),
+		"bg"
+	]);
+
+	action("bg", (b) => {
+		b.move(0, 100);
+
+		if (b.pos.y >= height()) {
+			b.pos.y -= height() * 2;
+		};
+	});
 
 	// Gui of Start ////////////////
 
@@ -188,36 +222,36 @@ scene("start", () => {
 	const jamLogo = add([
 		sprite("jam_logo"),
 		scale(0.3),
-		pos(0, -30)
+		pos(0, 0)
 	]);
 
 	const startText = add([
-		text("Space or enter for play", 15),
+		text("press space or enter", 16, { noArea: true }),
 		pos(width() / 2, height() - 60),
 		origin("center"),
+		color(0, 0, 0),
 	]);
 
 	loop(0.3, () => {
-		if(isStart) return;
+		if (isStart) return;
 
 		startText.hidden = !startText.hidden;
 	});
-
 
 	action(() => {
 		if ((keyIsPressed("space") || keyIsPressed("enter")) && !isStart) {
 			isStart = true;
 			play("start");
-			
+
 			loop(0.1, () => startText.hidden = !startText.hidden);
 			wait(2, () => go("game"));
 		};
 
-		if(jamLogo.isClicked()) {
+		if (jamLogo.isClicked()) {
 			window.open("https://www.newgrounds.com/collection/julyjam2021", "_blank");
 		};
 
-		if(jamLogo.isHovered()) {
+		if (jamLogo.isHovered()) {
 			document.getElementById("game").style.cursor = "pointer";
 		} else {
 			document.getElementById("game").style.cursor = "default";
@@ -227,13 +261,14 @@ scene("start", () => {
 
 scene("game", () => {
 	let BOSS_HEALTH = 300;
-	let PLAYER_HEALTH = 100;
+	let PLAYER_HEALTH = 5;
 
 	let win = false;
 	let worldW = 500;
 	let backgroundSpeed = 100;
 	let lastShoot = 0;
 	let isPosted = false;
+	let isDamaged = false;
 
 	let backgroundMusic = play("spooky_beat");
 	backgroundMusic.loop();
@@ -241,39 +276,72 @@ scene("game", () => {
 	layers(["background", "game", "ui"]);
 
 	/// Game UI 
-	
+
+	camIgnore(["ui"]);
+	volume(0.5);
+
 	const margin = add([
 		sprite("margin"),
 		pos(worldW, 0),
 		layer("ui"),
 	]);
-	
+
 	add([
 		sprite("background"),
 		layer("bg"),
-		pos(0, 0),
-		scale(1),
+		pos(-20, 0),
+		scale(vec2(1.2, 1)),
 		"bg"
 	]);
 
 	add([
 		sprite("background"),
 		layer("bg"),
-		pos(0, -height()),
-		scale(1),
+		pos(-20, -height()),
+		scale(vec2(1.2, 1)),
 		"bg"
 	]);
 
 	const heart = add([
 		sprite("heart"),
 		layer("ui"),
-		pos(margin.pos.x + 20, 30),
+		pos(margin.pos.x + 30, 30),
+		"uiheart"
+	]);
+
+	add([
+		sprite("heart"),
+		layer("ui"),
+		pos(margin.pos.x + 50, 30),
+		"uiheart"
+	]);
+
+	add([
+		sprite("heart"),
+		layer("ui"),
+		pos(margin.pos.x + 70, 30),
+		"uiheart"
+	]);
+
+	add([
+		sprite("heart"),
+		layer("ui"),
+		pos(margin.pos.x + 90, 30),
+		"uiheart"
+	]);
+
+	add([
+		sprite("heart"),
+		layer("ui"),
+		pos(margin.pos.x + 110, 30),
+		"uiheart"
 	]);
 
 	const evil = add([
 		sprite("evil"),
 		layer("ui"),
-		pos(heart.pos.x, heart.pos.y + 60)
+		pos(heart.pos.x, heart.pos.y + 60),
+		color(0, 0, 0, 0)
 	]);
 
 	const clock = add([
@@ -287,17 +355,19 @@ scene("game", () => {
 	const playerLife = add([
 		text(":" + PLAYER_HEALTH, 25),
 		pos(heart.pos.x + 40, heart.pos.y + 15),
-		layer("ui")
+		layer("ui"),
+		color(0, 0, 0, 0),
 	]);
 
 	const bossLife = add([
 		text(":" + BOSS_HEALTH, 25),
 		pos(evil.pos.x + 40, evil.pos.y + 15),
-		layer("ui")
+		layer("ui"),
+		color(0, 0, 0, 0),
 	]);
 
 	const timer = add([
-		text(":" + 0, 20, {width: 135}),
+		text(":" + 0, 20, { width: 135 }),
 		pos(worldW + 180 / 2, clock.pos.y + 50),
 		origin("center"),
 		layer("ui"),
@@ -320,8 +390,8 @@ scene("game", () => {
 		pos(worldW / 2, height() - 40),
 		scale(1.5),
 		origin("center"),
-		area(vec2(15, 20), vec2(-15, -20)),
-		health(100),
+		area(vec2(5, 5), vec2(-5, -5)),
+		health(PLAYER_HEALTH),
 		{
 			speed: 300,
 			shoot: () => {
@@ -330,19 +400,19 @@ scene("game", () => {
 					layer("game"),
 					pos(player.pos.x, player.pos.y - 30),
 					origin("center"),
-					scale(1.2),
+					scale(1.25),
 					"egg",
 					{
-						speed: 500
+						speed: 800
 					}
 				]);
-				
-				play("shoot", {volume: 0.6});
+
+				play("shoot", { volume: 0.6 });
 				egg.play("main");
 			},
 		}
 	]);
-	
+
 	const boss = add([
 		sprite("robochiken"),
 		layer("game"),
@@ -360,9 +430,9 @@ scene("game", () => {
 			ydir: 1,
 			lastShoot,
 			shoot: (s, dir, t) => {
-				if(!s) s = 400;
-				if(!dir) dir = -boss.angle;
-				if(!t) t = 0.8;
+				if (!s) s = 400;
+				if (!dir) dir = -boss.angle;
+				if (!t) t = 0.8;
 
 				const egg = add([
 					sprite("roboegg"),
@@ -388,63 +458,63 @@ scene("game", () => {
 	player.play("fly");
 	boss.play("fly");
 	boss.flipY(-1);
-	boss.trigger("toMap")
+	boss.trigger("toMap");
 
 	var attacks = [0, 1, 2, 3];
 	var attack = -1;
 	var attackTime = 0;
 
 	boss.action(() => {
-		if(boss.pos.y < 40 && !boss.is("inMap")) boss.trigger("toMap");
+		if (boss.pos.y < 40 && !boss.is("inMap")) boss.trigger("toMap");
 
-		else if(!boss.is("inMap")) {
+		else if (!boss.is("inMap")) {
 			boss.use("inMap");
-			boss.speed = 200;	
+			boss.speed = 200;
 		};
 
 		removeItemFromArr(attacks, attack);
 
-		if(attacks.length == 0) {
+		if (attacks.length == 0) {
 			attacks = [0, 1, 2, 3];
 		};
 
-		if(attack < 0) {
+		if (attack < 0) {
 			attack = attacks[Math.floor(Math.random() * attacks.length)];
 			attackTime = time();
 		};
 
-		if(attack == 0 && boss.is("inMap")) boss.trigger("attackOne");
-		if(attack == 1 && boss.is("inMap")) boss.trigger("attackTwo");
-		if(attack == 2 && boss.is("inMap")) boss.trigger("attackThree");
-		if(attack == 3 && boss.is("inMap")) boss.trigger("attackFour");
+		if (attack == 0 && boss.is("inMap")) boss.trigger("attackOne");
+		if (attack == 1 && boss.is("inMap")) boss.trigger("attackTwo");
+		if (attack == 2 && boss.is("inMap")) boss.trigger("attackThree");
+		if (attack == 3 && boss.is("inMap")) boss.trigger("attackFour");
 	});
 
 	// Input ////////////////////////// 
-	
+
 	action(() => {
-		if((keyIsDown("right") || keyIsDown("d")) && player.pos.x < worldW - 30) {
+		if ((keyIsDown("right") || keyIsDown("d")) && player.pos.x < worldW - 30) {
 			player.move(player.speed, 0);
 		};
 
-		if((keyIsDown("left") || keyIsDown("a")) && player.pos.x > 35) {
+		if ((keyIsDown("left") || keyIsDown("a")) && player.pos.x > 35) {
 			player.move(-player.speed, 0);
 		};
 
-		if((keyIsDown("down") || keyIsDown("s")) && player.pos.y <= height() - 30) {
+		if ((keyIsDown("down") || keyIsDown("s")) && player.pos.y <= height() - 30) {
 			player.move(0, player.speed);
 		};
 
-		if((keyIsDown("up") || keyIsDown("w")) && player.pos.y >= 0) {
+		if ((keyIsDown("up") || keyIsDown("w")) && player.pos.y >= 0) {
 			player.move(0, -player.speed);
 		};
 
-		if((keyIsPressed("space") || keyIsPressed("enter")) && time() > lastShoot + 0.2 && player.exists()) {
+		if ((keyIsDown("space") || keyIsDown("enter")) && time() > lastShoot + 0.2 && player.exists()) {
 			player.shoot();
 			readd(player);
 			lastShoot = time();
 		};
 
-		if(keyIsPressed("escape")) {
+		if (keyIsPressed("escape")) {
 			backgroundMusic.stop();
 			go("start");
 		};
@@ -454,11 +524,19 @@ scene("game", () => {
 	// Collisions and actions ////////////////////////// 
 
 	player.on("hurt", () => {
-		if(player.hp() < 0) player.text = ":0";
+		isDamaged = true;
+
+		if (player.hp() < 0) player.text = ":0";
 		else playerLife.text = ":" + player.hp();
-		
+		destroy(get("uiheart")[0]);
+
 		player.color = rgb(1, 0, 0);
-		wait(0.050, () => player.color = rgb(1, 1, 1))
+		wait(0.050, () => player.color = rgb(1, 1, 1));
+
+		player.use(area(vec2(0), vec2(0)));
+		wait(1, () => {
+			player.use(area(vec2(5, 5), vec2(-5, -5))); isDamaged = false; player.hidden = false;
+		});
 	});
 
 	player.on("death", () => {
@@ -477,7 +555,7 @@ scene("game", () => {
 		destroy(player);
 		boom.play("main");
 
-		wait(2, () => go("loose"))
+		wait(2, () => go("loose"));
 	});
 
 	// BOSS
@@ -487,42 +565,42 @@ scene("game", () => {
 		var newScore = Number(timer.time.toFixed(2).toString().replace(".", ""));
 		bossLife.text = ":0";
 
-		if(!isPosted) {
+		if (!isPosted) {
 			isPosted = true;
 
 			ngPostScore(0, newScore);
 		};
 
-		if(player.hp() == 100) {
+		if (player.hp() == 5) {
 			ngUnlockMedal(2);
 		}
 
-		if(timer.time < 100) {
+		if (timer.time < 100) {
 			ngUnlockMedal(3);
 		};
 
 		attackTime = 0.0;
 		win = true;
-		var toDead = false
+		var toDead = false;
 		var anim;
 
 		backgroundMusic.stop();
 
 		action(() => {
-			if(boss.pos.x.toFixed() != worldW / 2 && !toDead) {
-				if(boss.pos.x > worldW / 2) {
-					boss.move(-120, 0)
+			if (boss.pos.x.toFixed() != worldW / 2 && !toDead) {
+				if (boss.pos.x > worldW / 2) {
+					boss.move(-120, 0);
 				}
 				else {
-					boss.move(120, 0)
+					boss.move(120, 0);
 				}
 			}
 
-			if(boss.pos.y.toFixed() != 40 && !toDead) {
-				boss.move(120, 0)
+			if (boss.pos.y.toFixed() != 40 && !toDead) {
+				boss.move(120, 0);
 			}
 
-			if(boss.pos.x.toFixed() == worldW / 2 && boss.pos.y.toFixed() == 40 && !toDead) {
+			if (boss.pos.x.toFixed() == worldW / 2 && boss.pos.y.toFixed() == 40 && !toDead) {
 				toDead = true;
 
 				anim = add([
@@ -539,25 +617,25 @@ scene("game", () => {
 				anim.play("dead");
 			};
 
-			if(toDead) {
+			if (toDead) {
 				anim.move(0, -15);
 
-				if(anim.frame == 0) {
-					play("boom", {volume: 0.06});
+				if (anim.frame == 0) {
+					play("boom", { volume: 0.06 });
 				};
 
-				wait(5, () => go("win")); 
+				wait(5, () => go("win"));
 			}
-		})
-		
+		});
+
 	});
 
 	boss.on("hurt", () => {
-		if(boss.hp() < 0) bossLife.text = ":0";
+		if (boss.hp() < 0) bossLife.text = ":0";
 		else bossLife.text = ":" + boss.hp();
 
 		boss.color = rgb(1, 3, 1);
-		wait(0.050, () => boss.color = rgb(1, 1, 1))
+		wait(0.050, () => boss.color = rgb(1, 1, 1));
 	});
 
 	boss.on("toMap", () => {
@@ -565,13 +643,13 @@ scene("game", () => {
 	});
 
 	boss.on("attackOne", () => {
-		if(time() < attackTime + 8) {
+		if (time() < attackTime + 8) {
 			boss.move(boss.speed * boss.dir, 0);
 		}
 
-		if(time() > boss.lastShoot + 0.12 && time() < attackTime + 8) {
+		if (time() > boss.lastShoot + 0.12 && time() < attackTime + 8) {
 			boss.shoot(540);
-			play("shoot", {volume: 0.7});
+			play("shoot", { volume: 0.7 });
 			boss.lastShoot = time();
 		};
 
@@ -582,14 +660,14 @@ scene("game", () => {
 			boss.dir = 1;
 		};
 
-		if(time() > attackTime + 8) {
-			if(boss.pos.x.toFixed() == worldW / 2) {
+		if (time() > attackTime + 8) {
+			if (boss.pos.x.toFixed() == worldW / 2) {
 				attack = -1;
 			} else {
-				if(boss.pos.x.toFixed() > worldW / 2) {
+				if (boss.pos.x.toFixed() > worldW / 2) {
 					boss.move(-boss.speed, 0);
 				}
-				else if(boss.pos.x.toFixed() < worldW / 2) {
+				else if (boss.pos.x.toFixed() < worldW / 2) {
 					boss.move(boss.speed, 0);
 				};
 			}
@@ -597,25 +675,25 @@ scene("game", () => {
 	});
 
 	boss.on("attackTwo", () => {
-		if(boss.pos.y <= height() / 2 && time() < attackTime + 8) {
+		if (boss.pos.y <= height() / 2 && time() < attackTime + 8) {
 			boss.move(0, boss.speed);
-		} 
-		
+		}
+
 		else {
 			boss.angle += 0.5;
 
-			if(time() > boss.lastShoot + 0.05 && time() < attackTime + 8) {
+			if (time() > boss.lastShoot + 0.05 && time() < attackTime + 8) {
 				boss.shoot();
-				play("shoot", {volume: 0.7});
+				play("shoot", { volume: 0.7 });
 				boss.lastShoot = time();
 			};
 		};
 
-		if(time() > attackTime + 8) {
+		if (time() > attackTime + 8) {
 			boss.angle = 0;
 
-			if(boss.pos.y.toFixed() <= 40) {
-					attack = -1;
+			if (boss.pos.y.toFixed() <= 40) {
+				attack = -1;
 			}
 			else {
 				boss.move(0, -boss.speed);
@@ -624,26 +702,26 @@ scene("game", () => {
 	});
 
 	boss.on("attackThree", () => {
-		if(time() > boss.lastShoot + 0.1 && time() < attackTime + 4) {
+		if (time() > boss.lastShoot + 0.1 && time() < attackTime + 4) {
 			boss.shoot(null, 0);
 			boss.shoot(null, 5.26);
 			boss.shoot(null, 1.06);
-			play("shoot", {volume: 0.7});
+			play("shoot", { volume: 0.7 });
 
 			boss.lastShoot = time();
 		};
 
-		if(boss.pos.y < 380 && time() < attackTime + 4) {
-			boss.move(0, boss.speed)
+		if (boss.pos.y < 380 && time() < attackTime + 4) {
+			boss.move(0, boss.speed);
 		}
 
 		else {
-			if(time() > attackTime + 4) {
-				if(boss.pos.y <= 40) {
+			if (time() > attackTime + 4) {
+				if (boss.pos.y <= 40) {
 					attack = -1;
 				}
-				else if(boss.pos.y > 40) {
-					boss.move(0, -boss.speed)
+				else if (boss.pos.y > 40) {
+					boss.move(0, -boss.speed);
 				};
 			};
 		};
@@ -652,11 +730,11 @@ scene("game", () => {
 	boss.on("attackFour", () => {
 		let angleInit = 0.523;
 
-		if(boss.pos.y <= height() / 2 && time() < attackTime + 5) {
+		if (boss.pos.y <= height() / 2 && time() < attackTime + 5) {
 			boss.move(0, boss.speed);
 		}
 
-		if(time() > boss.lastShoot + 0.8 && time() < attackTime + 5) {
+		if (time() > boss.lastShoot + 0.8 && time() < attackTime + 5) {
 			boss.shoot(null, 0, 1);
 			boss.shoot(null, angleInit, 1);
 			boss.shoot(null, angleInit * 2, 1);
@@ -671,20 +749,20 @@ scene("game", () => {
 			boss.shoot(null, angleInit * 11, 1);
 			boss.shoot(null, angleInit * 12, 1);
 
-			play("shoot", {volume: 0.7});
+			play("shoot", { volume: 0.7 });
 			boss.lastShoot = time();
 		};
-		
-		if(time() > attackTime + 5) {
-			if(boss.pos.y.toFixed() <= 40) {
-					attack = -1;
+
+		if (time() > attackTime + 5) {
+			if (boss.pos.y.toFixed() <= 40) {
+				attack = -1;
 			}
 			else {
 				boss.move(0, -boss.speed);
 			};
 		};
 	});
- 
+
 	action("egg", (e) => {
 		e.move(0, -e.speed);
 
@@ -694,23 +772,23 @@ scene("game", () => {
 
 	action("enemyEgg", (e) => {
 		var currentAngle = e.angle;
-		
+
 		var dy = Math.cos(e.angle) * e.speed;
 		var dx = Math.sin(e.angle) * e.speed;
-		
-		if (currentAngle > previousAngle) {       
-			if(e.angle >= 0 && e.angle <= 90) dy = -dy, dx + dx;
-			if(e.angle > 90 && e.angle <= 180) dy = +dy, dx = -dx;
 
-			if(e.angle > 180 && e.angle <= 270) dy = -dy, dx = +dx;
-			if(e.angle > 270 && e.angle <= 360) dy = +dy, dx = -dx;
+		if (currentAngle > previousAngle) {
+			if (e.angle >= 0 && e.angle <= 90) dy = -dy, dx + dx;
+			if (e.angle > 90 && e.angle <= 180) dy = +dy, dx = -dx;
+
+			if (e.angle > 180 && e.angle <= 270) dy = -dy, dx = +dx;
+			if (e.angle > 270 && e.angle <= 360) dy = +dy, dx = -dx;
 		}
 		else {
-			if(e.angle >= 0 && e.angle <= 90) dy = +dy, dx - dx;
-			if(e.angle > 90 && e.angle <= 180) dy = -dy, dx = +dx;
+			if (e.angle >= 0 && e.angle <= 90) dy = +dy, dx - dx;
+			if (e.angle > 90 && e.angle <= 180) dy = -dy, dx = +dx;
 
-			if(e.angle > 180 && e.angle <= 270) dy = +dy, dx = -dx;
-			if(e.angle > 270 && e.angle <= 360) dy = -dy, dx = +dx;
+			if (e.angle > 180 && e.angle <= 270) dy = +dy, dx = -dx;
+			if (e.angle > 270 && e.angle <= 360) dy = -dy, dx = +dx;
 		};
 
 		e.move(dx, dy);
@@ -718,17 +796,17 @@ scene("game", () => {
 		if (e.pos.y > height() + 25) destroy(e);
 		if (e.frame == 6) wait(0.1, () => destroy(e));
 
-		var previousAngle = currentAngle; 
+		var previousAngle = currentAngle;
 	});
 
 	action("boom", (boom) => {
-		if(boom.frame == 4) {
+		if (boom.frame == 4) {
 			destroy(boom);
 		};
 	});
 
 	timer.action(() => {
-		if(win == true) return;
+		if (win == true) return;
 
 		timer.time += dt();
 		timer.text = timer.time.toFixed(2);
@@ -737,19 +815,29 @@ scene("game", () => {
 	collides("enemy", "egg", (en, e) => {
 		destroy(e);
 
-		en.hurt(2);
+		en.hurt(1);
 		camShake(1);
 	});
 
 	player.collides("enemy", () => {
-		player.hurt(8);
+		if (isDamaged) return;
+
+		player.hurt(1);
 		camShake(4);
-	})
+	});
 
 	player.collides("enemyEgg", (e) => {
+		if (isDamaged) return;
+
 		destroy(e);
-		player.hurt(4);
+		player.hurt(1);
 		camShake(2);
+	});
+
+	loop(0.05, () => {
+		if (!isDamaged) return;
+
+		player.hidden = !player.hidden;
 	});
 });
 
@@ -757,7 +845,7 @@ scene("loose", () => {
 	add([
 		sprite("loose"),
 		pos(0, 0)
-	])
+	]);
 
 	add([
 		text("Cooked!", 35),
@@ -797,7 +885,7 @@ scene("win", () => {
 		text("space for main menu", 25),
 		pos(width() / 2, height() - 80),
 		origin("center")
-	])
+	]);
 
 	keyPress("escape", () => {
 		go("start");
