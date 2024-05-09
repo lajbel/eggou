@@ -550,7 +550,7 @@ scene("game", () => {
 
     player.on("death", () => {
         backgroundMusic.stop();
-        unlockMedal(73933);
+        unlockMedal(64127);
 
         playerLife.text = ":0";
 
