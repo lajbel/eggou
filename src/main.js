@@ -581,8 +581,6 @@ scene("game", () => {
         if (!isPosted) {
             isPosted = true;
 
-            console.log("posting scores...");
-
             postScore(10488, newScore);
         }
 
