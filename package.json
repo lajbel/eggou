@@ -1,6 +1,6 @@
 {
-  "name": "kaboom-explosion",
-  "version": "1.2.0",
+  "name": "eggou",
+  "version": "1.2.1",
   "scripts": {
     "dev": "esbuild --bundle src/main.js --outfile=www/game.js --servedir=www --sourcemap",
     "build": "esbuild --bundle src/main.js --outfile=www/game.js --sourcemap"
