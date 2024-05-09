@@ -1,11 +1,16 @@
 {
     "name": "kaboom-explosion",
     "version": "1.0.0",
+    "scripts": {
+        "dev": "esbuild --bundle src/main.js --outfile=www/game.js --servedir=www --sourcemap"
+    },
     "dependencies": {
+        "dprint": "^0.45.1",
         "esbuild": "^0.12.19",
         "express": "^4.17.1",
         "kaboom": "^0.5.1",
-        "newgrounds-boom": "^1.0.0"
+        "newgrounds-boom": "^1.0.0",
+        "newgrounds.js": "4.0.0-beta.1"
     },
     "devDependencies": {
         "dotenv": "^16.0.3"
