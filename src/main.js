@@ -47,23 +47,23 @@ kaboom({
 
 // Load sprites and audios ///////////////////
 
-loadSound("spooky_beat", "/sounds/spooky_beat.ogg");
-loadSound("start", "/sounds/start.wav");
-loadSound("shoot", "/sounds/shoot.wav");
-loadSound("boom", "/sounds/boom.wav");
-loadSprite("margin", "/sprites/margin.png");
+loadSound("spooky_beat", "./sounds/spooky_beat.ogg");
+loadSound("start", "./sounds/start.wav");
+loadSound("shoot", "./sounds/shoot.wav");
+loadSound("boom", "./sounds/boom.wav");
+loadSprite("margin", "./sprites/margin.png");
 
-loadSprite("loose", "/sprites/loose.png");
-loadSprite("win", "/sprites/win.png");
-loadSprite("target", "/sprites/target.png");
-loadSprite("clock", "/sprites/clock.png");
-loadSprite("evil", "/sprites/evil.png");
-loadSprite("heart", "/sprites/heart.png");
-loadSprite("background", "/sprites/background.png");
-loadSprite("logo", "/sprites/logo.png");
-loadSprite("jam_logo", "/sprites/jam_logo.png");
-loadSprite("newgrounds", "/sprites/newgrounds.png");
-loadSprite("egg", "/sprites/egg.png", {
+loadSprite("loose", "./sprites/loose.png");
+loadSprite("win", "./sprites/win.png");
+loadSprite("target", "./sprites/target.png");
+loadSprite("clock", "./sprites/clock.png");
+loadSprite("evil", "./sprites/evil.png");
+loadSprite("heart", "./sprites/heart.png");
+loadSprite("background", "./sprites/background.png");
+loadSprite("logo", "./sprites/logo.png");
+loadSprite("jam_logo", "./sprites/jam_logo.png");
+loadSprite("newgrounds", "./sprites/newgrounds.png");
+loadSprite("egg", "./sprites/egg.png", {
     sliceX: 8,
     sliceY: 1,
     anims: {
@@ -73,7 +73,7 @@ loadSprite("egg", "/sprites/egg.png", {
         },
     },
 });
-loadSprite("roboegg", "/sprites/roboegg.png", {
+loadSprite("roboegg", "./sprites/roboegg.png", {
     sliceX: 10,
     sliceY: 1,
     anims: {
@@ -83,7 +83,7 @@ loadSprite("roboegg", "/sprites/roboegg.png", {
         },
     },
 });
-loadSprite("chiken", "/sprites/chiken.png", {
+loadSprite("chiken", "./sprites/chiken.png", {
     animSpeed: 1,
     sliceX: 5,
     sliceY: 1,
@@ -94,7 +94,7 @@ loadSprite("chiken", "/sprites/chiken.png", {
         },
     },
 });
-loadSprite("robochiken", "/sprites/robo_chiken.png", {
+loadSprite("robochiken", "./sprites/robo_chiken.png", {
     animSpeed: 1,
     sliceX: 6,
     sliceY: 1,
@@ -105,7 +105,7 @@ loadSprite("robochiken", "/sprites/robo_chiken.png", {
         },
     },
 });
-loadSprite("chikenboom", "/sprites/chikenboom.png", {
+loadSprite("chikenboom", "./sprites/chikenboom.png", {
     animSpeed: 1.5,
     sliceX: 5,
     sliceY: 1,
@@ -116,7 +116,7 @@ loadSprite("chikenboom", "/sprites/chikenboom.png", {
         },
     },
 });
-loadSprite("robodead", "/sprites/robodead.png", {
+loadSprite("robodead", "./sprites/robodead.png", {
     animSpeed: 2,
     sliceX: 12,
     sliceY: 1,
@@ -571,7 +571,8 @@ scene("game", () => {
     // BOSS
 
     boss.on("death", () => {
-        unlock(64182); // Beat game
+        unlockMedal(64182); // Beat game
+
         var newScore = Number(
             timer.time.toFixed(2).toString().replace(".", ""),
         );
@@ -579,6 +580,8 @@ scene("game", () => {
 
         if (!isPosted) {
             isPosted = true;
+
+            console.log("posting scores...");
 
             postScore(10488, newScore);
         }
